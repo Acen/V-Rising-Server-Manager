@@ -306,16 +306,10 @@
         <DockPanel Grid.Row="4">
             <StatusBar>
                 <StatusBarItem HorizontalAlignment="Left">
-                    
-                    <Button ToolTip="Click to search for a new update." Click="VersionButton_Click">
-                        <Button.Content>
-                            <TextBlock>                                                            
-                                <Run Text="Version:"/>
-                                <Run Text="{Binding AppSettings.Version}"/>                                
-                            </TextBlock>
-                        </Button.Content>
-
-                    </Button>
+                    <TextBlock>
+                        <Run Text="Version:"/>
+                        <Run Text="{Binding AppSettings.Version}"/>
+                    </TextBlock>
                 </StatusBarItem>
                 <StatusBarItem HorizontalAlignment="Right">
                     <TextBlock Text="{Binding AppSettings.LastUpdateTime}" HorizontalAlignment="Right" Padding="5,1,5,1"/>

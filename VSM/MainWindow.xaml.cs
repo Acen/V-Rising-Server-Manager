@@ -25,7 +25,6 @@ namespace VRisingServerManager
         public MainSettings VsmSettings = new();
         private static dWebhook DiscordSender = new();
         private static HttpClient HttpClient = new();
-        private PeriodicTimer? AutoUpdateTimer;
         private RemoteConClient RCONClient;
 
         public MainWindow()
@@ -52,57 +51,8 @@ namespace VRisingServerManager
             LogToConsole("V Rising Server Manager started." + ((VsmSettings.Servers.Count > 0) ? "\r" + VsmSettings.Servers.Count.ToString() + " servers loaded from config." : "\rNo servers found, press 'Add Server' to get started."));
 
             ScanForServers();
-            SetupTimer();
-
-            if (VsmSettings.AppSettings.AutoUpdateApp == true)
-                LookForUpdate();
         }
 
-        private async void LookForUpdate()
-        {
-            string latestVersion = await HttpClient.GetStringAsync("https://raw.githubusercontent.com/Lacyway/V-Rising-Server-Manager/master/VERSION");
-            latestVersion = latestVersion.Trim();
-
-            if (latestVersion != VsmSettings.AppSettings.Version)
-            {
-                if (MessageBox.Show($"There is a new version available for download. Would you like to automatically update?\r\rCurrent: {VsmSettings.AppSettings.Version}\rLatest: {latestVersion}", "VSM Updater - New Update Found", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
-                {
-                    Process.Start("VSMUpdater.exe");
-                    Application.Current.MainWindow.Close();
-                }
-            }
-            else
-            {
-                LogToConsole($"Running latest version: {latestVersion}");
-            }
-        }
-
-        /// <summary>
-        /// Sets up the timer for AutoUpdates
-        /// </summary>
-        private void SetupTimer()
-        {
-            if (VsmSettings.AppSettings.AutoUpdate == true)
-            {
-#if DEBUG
-                AutoUpdateTimer = new PeriodicTimer(TimeSpan.FromSeconds(10));
-#else
-                AutoUpdateTimer = new PeriodicTimer(TimeSpan.FromMinutes(VsmSettings.AppSettings.AutoUpdateInterval));
-#endif
-                AutoUpdateLoop();
-            }
-        }
-
-        private async void AutoUpdateLoop()
-        {
-            while (await AutoUpdateTimer.WaitForNextTickAsync())
-            {
-                bool foundUpdate = await CheckForUpdate();
-                if (foundUpdate == true && VsmSettings.Servers.Count > 0)
-                    AutoUpdate();
-            }
-        }
-        
         private void LogToConsole(string logMessage)
         {
             Dispatcher.Invoke(new Action(() =>
@@ -308,68 +258,6 @@ namespace VRisingServerManager
             }
         }
 
-        private async void AutoUpdate()
-        {
-            SendDiscordMessage(VsmSettings.WebhookSettings.UpdateFound);
-
-            if (!File.Exists(Directory.GetCurrentDirectory() + @"\SteamCMD\steamcmd.exe"))
-            {
-                await UpdateSteamCMD();
-            }
-
-            List<Task> serverTasks = new List<Task>();
-            List<Server> runningServers = new List<Server>();
-
-            foreach (Server server in VsmSettings.Servers)
-            {
-                if (server.Runtime.State == ServerRuntime.ServerState.Running)
-                {                    
-                    runningServers.Add(server);
-                }
-            }
-
-            foreach (Server server in runningServers)
-            {
-                if (server.RconServerSettings.Enabled == true)
-                {
-                    await SendRconRestartMessage(server);
-                }
-            }
-
-            if (VsmSettings.WebhookSettings.Enabled == true && VsmSettings.WebhookSettings.URL != "" && runningServers.Count > 0)
-            {
-                SendDiscordMessage(VsmSettings.WebhookSettings.UpdateWait);
-#if DEBUG
-                await Task.Delay(TimeSpan.FromSeconds(10));
-#else
-                await Task.Delay(TimeSpan.FromMinutes(5));
-#endif
-            }
-
-            foreach (Server server in runningServers)
-            {
-                serverTasks.Add(StopServer(server));
-            }
-
-            LogToConsole($"AutoUpdate starting on {VsmSettings.Servers.Count} server(s)." + ((runningServers.Count > 0) ? $"\rShutting down {runningServers.Count} server(s) before proceeding." : ""));
-
-            await Task.WhenAll(serverTasks.ToArray());
-            serverTasks.Clear();
-
-            foreach (Server server in VsmSettings.Servers)
-            {
-                await UpdateGame(server);
-            }
-
-            foreach (Server server in runningServers)
-            {
-                serverTasks.Add(StartServer(server));
-            }
-
-            await Task.WhenAll(serverTasks.ToArray());
-            LogToConsole("Auto-update completed.");
-        }
-
         private async Task<bool> StopServer(Server server)
         {
             LogToConsole("Stopping server: " + server.Name);
@@ -549,36 +437,6 @@ namespace VRisingServerManager
         {
             switch (e.PropertyName)
             {
-                case "AutoUpdate":
-                    if (VsmSettings.AppSettings.AutoUpdate == true)
-                    {
-#if DEBUG
-                        AutoUpdateTimer = new PeriodicTimer(TimeSpan.FromSeconds(10));
-#else
-                        AutoUpdateTimer = new PeriodicTimer(TimeSpan.FromMinutes(VsmSettings.AppSettings.AutoUpdateInterval));
-#endif
-                        AutoUpdateLoop();
-                    }
-                    else
-                    {
-                        if (AutoUpdateTimer != null)
-                        {
-                            AutoUpdateTimer.Dispose();
-                        }
-                    }
-                    break;
-                case "AutoUpdateInterval":
-                    if (VsmSettings.AppSettings.AutoUpdate == true && AutoUpdateTimer != null)
-                    {
-                        AutoUpdateTimer.Dispose();
-#if DEBUG
-                        AutoUpdateTimer = new PeriodicTimer(TimeSpan.FromSeconds(10));
-#else
-                        AutoUpdateTimer = new PeriodicTimer(TimeSpan.FromMinutes(VsmSettings.AppSettings.AutoUpdateInterval));
-#endif
-                        AutoUpdateLoop();
-                    }
-                    break;
                 case "DarkMode":
                     if (VsmSettings.AppSettings.DarkMode == true)
                     {
@@ -751,11 +609,6 @@ namespace VRisingServerManager
                 ManagerSettings mSettings = new(VsmSettings);
                 mSettings.Show();
             }
-        }
-
-        private void VersionButton_Click(object sender, RoutedEventArgs e)
-        {
-            LookForUpdate();
         }
 
         private void RconServerButton_Click(object sender, RoutedEventArgs e)
