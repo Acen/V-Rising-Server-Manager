@@ -48,7 +48,7 @@ namespace VRisingServerManager
 
             VsmSettings.AppSettings.Version = new AppSettings().Version;
 
-            LogToConsole("V Rising Server Manager started." + ((VsmSettings.Servers.Count > 0) ? "\r" + VsmSettings.Servers.Count.ToString() + " servers loaded from config." : "\rNo servers found, press 'Add Server' to get started."));
+            LogToConsole("V Rising Server Manager started." + ((VsmSettings.Servers.Count > 0) ? "\r" + VsmSettings.Servers.Count.ToString() + " servers loaded from config." : "\rNo servers found, press 'Import Server' to import from local saves."));
 
             ScanForServers();
         }
@@ -554,12 +554,12 @@ namespace VRisingServerManager
             else
                 LogToConsole("Unable to find server folder.");
         }
-        private void AddServerButton_Click(object sender, RoutedEventArgs e)
+        private void ImportServerButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!Application.Current.Windows.OfType<CreateServer>().Any())
+            if (!Application.Current.Windows.OfType<ImportServer>().Any())
             {
-                CreateServer cServer = new(VsmSettings);
-                cServer.Show();
+                ImportServer iServer = new(VsmSettings);
+                iServer.ShowDialog();
             }
         }
 

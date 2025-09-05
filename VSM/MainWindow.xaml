@@ -271,10 +271,10 @@
                         <TextBlock Text="Settings"/>
                     </DockPanel>
                 </Button>
-                <Button Margin="5,0,5,0" Click="AddServerButton_Click" Padding="5" ToolTip="Add a new game server.">
+                <Button Margin="5,0,5,0" Click="ImportServerButton_Click" Padding="5" ToolTip="Import a server from local V Rising save files.">
                     <DockPanel>
                         <Image Source="Resources\Add.png" Margin="0,0,5,0"/>
-                        <TextBlock Text="Add Server"/>
+                        <TextBlock Text="Import Server"/>
                     </DockPanel>
                 </Button>
                 <Button Margin="5,0,5,0" Click="ManageModsButton_Click" Padding="5" ToolTipService.ShowOnDisabled="True">
