@@ -16,11 +16,35 @@ namespace VRisingServerManager
         public ObservableCollection<Server> Servers
         {
             get => _servers;
-            set => SetField(ref _servers, value);
+            set
+            {
+                if (_servers != null)
+                {
+                    _servers.CollectionChanged -= Servers_CollectionChanged;
+                }
+                SetField(ref _servers, value);
+                if (_servers != null)
+                {
+                    _servers.CollectionChanged += Servers_CollectionChanged;
+                }
+                OnPropertyChanged(nameof(HasServers));
+            }
         }
         public AppSettings AppSettings { get; set; } = new AppSettings();
         public Webhook WebhookSettings { get; set; } = new Webhook();
         public List<Mod> DownloadedMods { get; set; } = new List<Mod>();
+
+        public bool HasServers => Servers.Count > 0;
+
+        public MainSettings()
+        {
+            _servers.CollectionChanged += Servers_CollectionChanged;
+        }
+
+        private void Servers_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            OnPropertyChanged(nameof(HasServers));
+        }
 
         /// <summary>
         /// Saves the specified <see cref="MainSettings"/> object.
