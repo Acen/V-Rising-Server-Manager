@@ -96,6 +96,12 @@ namespace VRisingServerManager
             get => _path;
             set => SetField(ref _path, value);
         }
+        private string _steamPath = "";
+        public string SteamPath
+        {
+            get => _steamPath;
+            set => SetField(ref _steamPath, value);
+        }
         public LaunchSettings LaunchSettings { get; set; } = new LaunchSettings();
         public RCONServerSettings RconServerSettings { get; set; } = new RCONServerSettings();
         private bool _autoRestart = false;
