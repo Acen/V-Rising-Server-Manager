@@ -563,28 +563,6 @@ namespace VRisingServerManager
             }
         }
 
-        private void ManageModsButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (VsmSettings.Servers.Count == 0)
-            {
-                _ = new ContentDialog
-                {
-                    Owner = this,
-                    Title = "Mod Manager",
-                    Content = $"There are no servers added. Please add least one server before trying to manage mods.",
-                    CloseButtonText = "Ok",
-                    DefaultButton = ContentDialogButton.Close
-                }.ShowAsync();
-                return;
-            }
-
-            if (!Application.Current.Windows.OfType<ModManager>().Any())
-            {
-                ModManager modManager = new(VsmSettings);
-                modManager.Show();
-            }
-        }
-
         private void GameSettingsEditor_Click(object sender, RoutedEventArgs e)
         {
             if (!Application.Current.Windows.OfType<GameSettingsEditor>().Any())
@@ -599,15 +577,6 @@ namespace VRisingServerManager
                     GameSettingsEditor gSettingsEditor = new(VsmSettings.Servers);
                     gSettingsEditor.Show();
                 }
-            }
-        }
-
-        private void ManagerSettingsButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (!Application.Current.Windows.OfType<ManagerSettings>().Any())
-            {
-                ManagerSettings mSettings = new(VsmSettings);
-                mSettings.Show();
             }
         }
 
